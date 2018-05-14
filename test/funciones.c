@@ -5,8 +5,8 @@
 #include "funciones.h"
 
 //Posiciones para recorrer el puzzle
-int dx[4] = {-1,0,1,0};
-int dy[4] = {0,-1,0,1};
+int dx[4] = {0,0,-1,1};
+int dy[4] = {1,-1,0,0};
 
 //Nodos que indican el inicio el final de la cola
 struct Node* start = NULL;
@@ -92,21 +92,6 @@ void addVisited(char** puzzle)
 	visitedEnd = node;
 
 
-}
-
-void freeVisited()
-{
-	Node* aux;
-	while(visited != NULL)
-	{
-		freeMatrix(visited->puzzle);
-		aux=visited->next;
-		free(visited);
-		visited=aux;
-		
-	}
-	visited=NULL;
-	visitedEnd=NULL;
 }
 
 //Funcion que desencola un elemento de la cola y lo retorna
@@ -209,17 +194,18 @@ char** readFile(FILE* entrada)
 int compareMatrix(char** matriz1, char** matriz2)
 {
 	int i,j;
+	int ans = 1;
 	for(i=0;i<3;i++)
 	{
 		for(j=0;j<3;j++)
 		{
 			if(matriz1[i][j] != matriz2[i][j])
 			{
-				return 0;
+				ans=0;
 			}
 		}
 	}
-	return 1;
+	return ans;
 }
 
 //Funcion que crea la matriz solucion para comparar con los estados generados
@@ -390,27 +376,20 @@ void solution(char** puzzle)
 
 	int size = 1;
 	int cont=0;
-	
+	addVisited(puzzle);
 	char** puzzleAux=puzzle;
 	if(compareMatrix(puzzle,finalAnswer)==1)
 	{
 		minMov=0;
 
 	}
-	
-	//
-	//while(cont<1)
 	while(stackStart != NULL)
 	{
 		node=pop();
-		addVisited(node->puzzle);
-		printf("cont: %d visited:%d stack:%d depth:%d minMov:%d\n",cont,sizeVisited(),sizeStack(),node->depth,minMov);		
-		//printf("cont: %d depth:%d minMov:%d\n",cont,node->depth,minMov);
-
+		printf("cont: %d visited:%d stack:%d minMov:%d\n",cont,sizeVisited(),sizeStack(),minMov);
 		if(node->depth <= minMov)
 		{
 			startPosition = searchElementMatrix(node->puzzle,'x');
-			//printf("start x: %d y:%d\n",startPosition.x,startPosition.y);
 			for(i=0;i<4;i++)
 			{
 
@@ -418,21 +397,19 @@ void solution(char** puzzle)
 				{
 					swapPos.x=startPosition.x+dx[i];
 					swapPos.y=startPosition.y+dy[i];
-					
 					puzzleAux = swap(node->puzzle,startPosition,swapPos);
 					if(isVisited(puzzleAux)==0)
 					{
 						if(compareMatrix(puzzleAux,finalAnswer)==0)
 						{
-							//printf("ifswap x: %d y:%d\n",swapPos.x,swapPos.y);
+							addVisited(puzzleAux);
 							push(puzzleAux,(node->depth)+1);
+
 						}		
 						else
 						{ 
 							printf("solution\n");
 							minMov=(node->depth)+1;
-							printMatrix(puzzleAux,3,3);
-							freeVisited();
 						}
 
 					}
@@ -443,7 +420,6 @@ void solution(char** puzzle)
 				}
 			}
 		}
-		
 		cont++;
 
 		freeNode(node);		

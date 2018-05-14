@@ -5,8 +5,9 @@
 #include "funciones.h"
 
 //Posiciones para recorrer el puzzle
-int dx[4] = {-1,0,1,0};
-int dy[4] = {0,-1,0,1};
+int dx[4] = {0,0,-1,1};
+int dy[4] = {1,-1,0,0};
+char** finalAnswer;
 
 //Nodos que indican el inicio el final de la cola
 struct Node* start = NULL;
@@ -92,21 +93,6 @@ void addVisited(char** puzzle)
 	visitedEnd = node;
 
 
-}
-
-void freeVisited()
-{
-	Node* aux;
-	while(visited != NULL)
-	{
-		freeMatrix(visited->puzzle);
-		aux=visited->next;
-		free(visited);
-		visited=aux;
-		
-	}
-	visited=NULL;
-	visitedEnd=NULL;
 }
 
 //Funcion que desencola un elemento de la cola y lo retorna
@@ -209,17 +195,18 @@ char** readFile(FILE* entrada)
 int compareMatrix(char** matriz1, char** matriz2)
 {
 	int i,j;
+	int ans = 1;
 	for(i=0;i<3;i++)
 	{
 		for(j=0;j<3;j++)
 		{
 			if(matriz1[i][j] != matriz2[i][j])
 			{
-				return 0;
+				ans=0;
 			}
 		}
 	}
-	return 1;
+	return ans;
 }
 
 //Funcion que crea la matriz solucion para comparar con los estados generados
@@ -380,74 +367,49 @@ int sizeVisited()
 
 //Funcion que busca todos los caminos posibles que dado un puzzle inicial, se llegue al puzzle solucion
 //Salida: Arreglo con las profundidades de todas las soluciones (pasos necesarios)
-void solution(char** puzzle)
+void solution(char** puzzle,int depth)
 {	
-	Position startPosition,swapPos; 
-	push(puzzle,0);
-	Node* node;
-	int i;
-	char** finalAnswer=createFinalAnswer();
-
-	int size = 1;
-	int cont=0;
-	
-	char** puzzleAux=puzzle;
-	if(compareMatrix(puzzle,finalAnswer)==1)
-	{
-		minMov=0;
-
-	}
-	
-	//
-	//while(cont<1)
-	while(stackStart != NULL)
-	{
-		node=pop();
-		addVisited(node->puzzle);
-		printf("cont: %d visited:%d stack:%d depth:%d minMov:%d\n",cont,sizeVisited(),sizeStack(),node->depth,minMov);		
-		//printf("cont: %d depth:%d minMov:%d\n",cont,node->depth,minMov);
-
-		if(node->depth <= minMov)
-		{
-			startPosition = searchElementMatrix(node->puzzle,'x');
-			//printf("start x: %d y:%d\n",startPosition.x,startPosition.y);
-			for(i=0;i<4;i++)
-			{
-
-				if(startPosition.x + dx[i] < 3 && startPosition.x + dx[i] >= 0 && startPosition.y + dy[i] < 3 && startPosition.y + dy[i] >= 0)
-				{
-					swapPos.x=startPosition.x+dx[i];
-					swapPos.y=startPosition.y+dy[i];
-					
-					puzzleAux = swap(node->puzzle,startPosition,swapPos);
-					if(isVisited(puzzleAux)==0)
-					{
-						if(compareMatrix(puzzleAux,finalAnswer)==0)
-						{
-							//printf("ifswap x: %d y:%d\n",swapPos.x,swapPos.y);
-							push(puzzleAux,(node->depth)+1);
-						}		
-						else
-						{ 
-							printf("solution\n");
-							minMov=(node->depth)+1;
-							printMatrix(puzzleAux,3,3);
-							freeVisited();
-						}
-
-					}
-					else
-					{
-						freeMatrix(puzzleAux);
-					}
-				}
-			}
-		}
+    if(depth <= minMov)
+    {
+        Position startPosition,swapPos; 
+        int i;
+        int size = 1;
+        int cont=0;
+        addVisited(puzzle);
+        char** puzzleAux=puzzle;
+        int x,y;
 		
-		cont++;
+        if(compareMatrix(puzzle,finalAnswer)==1)
+        {
+            minMov=0;
 
-		freeNode(node);		
-	}
+        }
+        startPosition = searchElementMatrix(puzzle,'x');
+		printf("depth:%d minMov:%d\n",depth,minMov);
+        for(i=0;i<4;i++)
+        {
+            swapPos.x=startPosition.x+dx[i];
+            swapPos.y=startPosition.y+dy[i];
+            if(startPosition.x + dx[i] < 3 && startPosition.x + dx[i] >= 0 && startPosition.y + dy[i] < 3 && startPosition.y + dy[i] >= 0)
+            {
+                puzzleAux = swap(puzzle,startPosition,swapPos);
+                if(isVisited(puzzleAux)==0){
+                    if(compareMatrix(puzzleAux,finalAnswer)==0){
+                        
+                        solution(puzzleAux,depth+1);
+                    }
+                    else
+                    { 
+                        printf("solution\n");
+                        minMov=depth+1;
+                    }
+                }
+                else{
+                   freeMatrix(puzzleAux);
+                }                
+            }
+        }
+    }
 }
 
 void inicio()
@@ -455,6 +417,7 @@ void inicio()
 	FILE* entrada = fopen("Entrada.in","r");
 	char** puzzle = readFile(entrada);
 	fclose(entrada);
+    finalAnswer=createFinalAnswer();
 	printf("Archivo leido\n");
 	printf("Puzzle de entrada: \n");
 	printMatrix(puzzle,3,3);
@@ -462,7 +425,7 @@ void inicio()
 	printf("...\n");
 	printf("...\n");
 	printf("...\n");
-	solution(puzzle);
+	solution(puzzle,0);
 	printf("Se requieren %d movimientos\n", minMov);
 	FILE* salida = fopen("Salida.out","w");
 	fprintf(salida,"Se requieren %d movimientos\n",minMov);
