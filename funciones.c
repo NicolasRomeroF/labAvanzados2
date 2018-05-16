@@ -407,7 +407,7 @@ void solution(char** puzzle)
 		printf("cont: %d visited:%d stack:%d depth:%d minMov:%d\n",cont,sizeVisited(),sizeStack(),node->depth,minMov);		
 		//printf("cont: %d depth:%d minMov:%d\n",cont,node->depth,minMov);
 
-		if(node->depth <= minMov)
+		if(node->depth < minMov)
 		{
 			startPosition = searchElementMatrix(node->puzzle,'x');
 			//printf("start x: %d y:%d\n",startPosition.x,startPosition.y);
@@ -425,7 +425,9 @@ void solution(char** puzzle)
 						if(compareMatrix(puzzleAux,finalAnswer)==0)
 						{
 							//printf("ifswap x: %d y:%d\n",swapPos.x,swapPos.y);
+
 							push(puzzleAux,(node->depth)+1);
+							
 						}		
 						else
 						{ 
@@ -442,6 +444,9 @@ void solution(char** puzzle)
 					}
 				}
 			}
+		}
+		else{
+			freeVisited();
 		}
 		
 		cont++;
