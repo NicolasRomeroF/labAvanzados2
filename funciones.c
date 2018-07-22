@@ -99,7 +99,7 @@ void freeVisited()
 	Node* aux;
 	while(visited != NULL)
 	{
-		freeMatrix(visited->puzzle);
+		//freeMatrix(visited->puzzle);
 		aux=visited->next;
 		free(visited);
 		visited=aux;
@@ -107,6 +107,22 @@ void freeVisited()
 	}
 	visited=NULL;
 	visitedEnd=NULL;
+}
+
+void freeVisited2(char** puzzle)
+{
+	Node* aux;
+	while(visited != NULL)
+	{
+		//freeMatrix(visited->puzzle);
+		aux=visited->next;
+		free(visited);
+		visited=aux;
+		
+	}
+	visited=NULL;
+	visitedEnd=NULL;
+	addVisited(puzzle);
 }
 
 //Funcion que desencola un elemento de la cola y lo retorna
@@ -436,11 +452,11 @@ void solution(char** puzzle)
 							printMatrix(puzzleAux,3,3);
 							freeVisited();
 						}
-
 					}
 					else
 					{
-						freeMatrix(puzzleAux);
+						//freeMatrix(puzzleAux);
+						freeVisited2(puzzleAux);
 					}
 				}
 			}
